@@ -80,6 +80,9 @@ int main() {
     }
 
     std::cout << "Client connected!" << std::endl;
+    
+    u_long mode = 1;
+    ioctlsocket(clientSocket, FIONBIO, &mode);
 
     std::srand(std::time(nullptr));
 
@@ -97,12 +100,21 @@ int main() {
 
         std::string message = "Temperature: " + std::to_string(temperature) + " C | State: " + stateToString(currentState) + "\n";
 
-        send(clientSocket, message.c_str(), message.length(), 0);
+        send(clientSocket, message.c_str(), message.length(), 0);\
+
+        char recvBuffer[256];
+        int bytesReceived = recv(clientSocket, recvBuffer, sizeof(recvBuffer) -1, 0);
+
+        if (bytesReceived > 0) {
+            recvBuffer[bytesReceived] = '\0';
+            std::cout << "Received command: " << recvBuffer << std::endl;
+        }
 
         std::cout << "Sent: " << message;
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
+
 
     closesocket(clientSocket);
     closesocket(serverSocket);
